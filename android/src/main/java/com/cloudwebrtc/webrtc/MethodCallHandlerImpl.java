@@ -598,19 +598,19 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       case "rtpTransceiverSetDirection": {
         String peerConnectionId = call.argument("peerConnectionId");
         String direction = call.argument("direction");
-        String transceiverId = call.argument("transceiverId");
+        int transceiverId = call.argument("transceiverId");
         rtpTransceiverSetDirection(peerConnectionId, direction, transceiverId, result);
         break;
       }
       case "rtpTransceiverGetCurrentDirection": {
         String peerConnectionId = call.argument("peerConnectionId");
-        String transceiverId = call.argument("transceiverId");
+        int transceiverId = call.argument("transceiverId");
         rtpTransceiverGetCurrentDirection(peerConnectionId, transceiverId, result);
         break;
       }
       case "rtpTransceiverStop": {
         String peerConnectionId = call.argument("peerConnectionId");
-        String transceiverId = call.argument("transceiverId");
+        int transceiverId = call.argument("transceiverId");
         rtpTransceiverStop(peerConnectionId, transceiverId, result);
         break;
       }
@@ -1573,7 +1573,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  public void rtpTransceiverSetDirection(String peerConnectionId, String direction, String transceiverId, Result result) {
+  public void rtpTransceiverSetDirection(String peerConnectionId, String direction, int transceiverId, Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
@@ -1582,7 +1582,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  public void rtpTransceiverGetCurrentDirection(String peerConnectionId, String transceiverId, Result result) {
+  public void rtpTransceiverGetCurrentDirection(String peerConnectionId, int transceiverId, Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
@@ -1591,7 +1591,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  public void rtpTransceiverStop(String peerConnectionId, String transceiverId, Result result) {
+  public void rtpTransceiverStop(String peerConnectionId, int transceiverId, Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverStop", "peerConnection is null", result);

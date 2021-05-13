@@ -26,15 +26,13 @@ abstract class RTCRtpTransceiver {
 
   TransceiverDirection? get currentDirection;
 
-  String get mid;
+  String? get mid;
 
   RTCRtpSender get sender;
 
   RTCRtpReceiver get receiver;
 
   bool get stoped;
-
-  String get transceiverId;
 
   Future<void> setDirection(TransceiverDirection direction);
 
