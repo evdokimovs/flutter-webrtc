@@ -165,6 +165,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
     ensureInitialized();
 
+    Log.d(TAG, String.format("AKSJDLKASJDKLASJd: %s", call.method));
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
       case "createPeerConnection": {
@@ -582,35 +583,43 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "addTransceiver": {
+        Log.d(TAG, "JAVA 31");
         String peerConnectionId = call.argument("peerConnectionId");
         Map<String, Object> transceiverInit = call.argument("transceiverInit");
+        Log.d(TAG, "JAVA 32");
         if (call.hasArgument("trackId")) {
           String trackId = call.argument("trackId");
+          Log.d(TAG, "JAVA 33");
           addTransceiver(peerConnectionId, trackId, transceiverInit, result);
+          Log.d(TAG, "JAVA 34");
         } else if (call.hasArgument("mediaType")) {
+          Log.d(TAG, "JAVA 35");
           String mediaType = call.argument("mediaType");
           addTransceiverOfType(peerConnectionId, mediaType, transceiverInit, result);
+          Log.d(TAG, "JAVA 36");
         } else {
+          Log.d(TAG, "JAVA 37");
           resultError("addTransceiver", "Incomplete parameters", result);
+          Log.d(TAG, "JAVA 38");
         }
         break;
       }
       case "rtpTransceiverSetDirection": {
         String peerConnectionId = call.argument("peerConnectionId");
         String direction = call.argument("direction");
-        String transceiverId = call.argument("transceiverId");
+        int transceiverId = call.argument("transceiverId");
         rtpTransceiverSetDirection(peerConnectionId, direction, transceiverId, result);
         break;
       }
       case "rtpTransceiverGetCurrentDirection": {
         String peerConnectionId = call.argument("peerConnectionId");
-        String transceiverId = call.argument("transceiverId");
+        int transceiverId = call.argument("transceiverId");
         rtpTransceiverGetCurrentDirection(peerConnectionId, transceiverId, result);
         break;
       }
       case "rtpTransceiverStop": {
         String peerConnectionId = call.argument("peerConnectionId");
-        String transceiverId = call.argument("transceiverId");
+        int transceiverId = call.argument("transceiverId");
         rtpTransceiverStop(peerConnectionId, transceiverId, result);
         break;
       }
@@ -1388,13 +1397,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public void peerConnectionSetRemoteDescription(final ConstraintsMap sdpMap, final String id,
                                                  final Result result) {
+    Log.d(TAG, "1");
     PeerConnection peerConnection = getPeerConnection(id);
+    Log.d(TAG, "2");
     if (peerConnection != null) {
+      Log.d(TAG, "3");
       SessionDescription sdp = new SessionDescription(
               Type.fromCanonicalForm(sdpMap.getString("type")),
               sdpMap.getString("sdp")
       );
+      Log.d(TAG, "4");
 
+      Log.d(TAG, "5");
       peerConnection.setRemoteDescription(new SdpObserver() {
         @Override
         public void onCreateSuccess(final SessionDescription sdp) {
@@ -1414,8 +1428,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           resultError("peerConnectionSetRemoteDescription", "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: " + s, result);
         }
       }, sdp);
+      Log.d(TAG, "6");
     } else {
+      Log.d(TAG, "7");
       resultError("peerConnectionSetRemoteDescription", "WEBRTC_SET_REMOTE_DESCRIPTION_ERROR: peerConnection is null", result);
+      Log.d(TAG, "8");
     }
   }
 
@@ -1550,39 +1567,53 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   public void addTransceiver(String peerConnectionId, String trackId, Map<String, Object> transceiverInit,
                              Result result) {
+    Log.d(TAG, "JAVA 21");
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     MediaStreamTrack track = localTracks.get(trackId);
+    Log.d(TAG, "JAVA 22");
     if (track == null) {
+      Log.d(TAG, "JAVA 23");
       resultError("addTransceiver", "track is null", result);
       return;
     }
     if (pco == null || pco.getPeerConnection() == null) {
+      Log.d(TAG, "JAVA 24");
       resultError("addTransceiver", "peerConnection is null", result);
     } else {
+      Log.d(TAG, "JAVA 25");
       pco.addTransceiver(track, transceiverInit, result);
+      Log.d(TAG, "JAVA 26");
     }
   }
 
   public void addTransceiverOfType(String peerConnectionId, String mediaType, Map<String, Object> transceiverInit,
                                    Result result) {
+      Log.d(TAG, "51");
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
+      Log.d(TAG, "52");
       resultError("addTransceiverOfType", "peerConnection is null", result);
     } else {
+      Log.d(TAG, "53");
       pco.addTransceiverOfType(mediaType, transceiverInit, result);
     }
   }
 
-  public void rtpTransceiverSetDirection(String peerConnectionId, String direction, String transceiverId, Result result) {
+  public void rtpTransceiverSetDirection(String peerConnectionId, String direction, int transceiverId, Result result) {
+    Log.d(TAG, "[rtpTransceiverSetDirection]: Getting PeerConnection from the store...");
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    Log.d(TAG, "[rtpTransceiverSetDirection]: ...PeerConnection gotten");
     if (pco == null || pco.getPeerConnection() == null) {
+      Log.d(TAG, "[rtpTransceiverSetDirection]: But PeerConnection is null");
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
     } else {
+      Log.d(TAG, "[rtpTransceiverSetDirection]: Setting PeerConnection Direction...");
       pco.rtpTransceiverSetDirection(direction, transceiverId, result);
+      Log.d(TAG, "[rtpTransceiverSetDirection]: ...PeerConnection Direction set");
     }
   }
 
-  public void rtpTransceiverGetCurrentDirection(String peerConnectionId, String transceiverId, Result result) {
+  public void rtpTransceiverGetCurrentDirection(String peerConnectionId, int transceiverId, Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
@@ -1591,7 +1622,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
   }
 
-  public void rtpTransceiverStop(String peerConnectionId, String transceiverId, Result result) {
+  public void rtpTransceiverStop(String peerConnectionId, int transceiverId, Result result) {
     PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
     if (pco == null || pco.getPeerConnection() == null) {
       resultError("rtpTransceiverStop", "peerConnection is null", result);

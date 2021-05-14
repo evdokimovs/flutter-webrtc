@@ -319,12 +319,16 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
 
   @override
   Future<void> setRemoteDescription(RTCSessionDescription description) async {
+    print("flutter_webrtc");
     try {
+      print("invoking method");
       await _channel.invokeMethod('setRemoteDescription', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
         'description': description.toMap(),
       });
+      print("invoked method");
     } on PlatformException catch (e) {
+      print("Platform exceptio");
       throw 'Unable to RTCPeerConnection::setRemoteDescription: ${e.message}';
     }
   }
@@ -516,6 +520,7 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
       RTCRtpMediaType? kind,
       RTCRtpTransceiverInit? init}) async {
     try {
+      print("DART 1");
       final response =
           await _channel.invokeMethod('addTransceiver', <String, dynamic>{
         'peerConnectionId': _peerConnectionId,
@@ -524,9 +529,11 @@ class RTCPeerConnectionNative extends RTCPeerConnection {
         if (init != null)
           'transceiverInit': RTCRtpTransceiverInitNative.initToMap(init)
       });
+      print("DART 2");
       return RTCRtpTransceiverNative.fromMap(response,
           peerConnectionId: _peerConnectionId);
     } on PlatformException catch (e) {
+      print("DART 3");
       throw 'Unable to RTCPeerConnection::addTransceiver: ${e.message}';
     }
   }

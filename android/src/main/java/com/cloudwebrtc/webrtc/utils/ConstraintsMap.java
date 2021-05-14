@@ -43,6 +43,10 @@ public class ConstraintsMap {
         return (int) mMap.get(name);
     }
 
+    public String toString() {
+        return mMap.toString();
+    }
+
     public String getString(String name){
         return (String) mMap.get(name);
     }

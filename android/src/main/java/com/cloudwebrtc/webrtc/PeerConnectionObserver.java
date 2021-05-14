@@ -41,6 +41,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private PeerConnection.RTCConfiguration configuration;
   final Map<String, MediaStream> remoteStreams = new HashMap<>();
   final Map<String, MediaStreamTrack> remoteTracks = new HashMap<>();
+  private final Map<Integer, RtpTransceiver> transceivers = new HashMap<>();
+  private int transceiversIdCounter = 0;
   private final StateProvider stateProvider;
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
@@ -150,14 +152,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
     }
 
-    RtpTransceiver getRtpTransceiverById(String id) {
-        List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
-        for(RtpTransceiver transceiver : transceivers) {
-            if (id.equals(transceiver.getMid())){
-                return transceiver;
-            }
-        }
-        return null;
+    RtpTransceiver getRtpTransceiverById(int id) {
+        return transceivers.get(id);
     }
 
     RtpSender getRtpSenderById(String id) {
@@ -432,7 +428,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
           List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
           for( RtpTransceiver transceiver : transceivers ) {
               if(transceiver.getReceiver() != null && receiver.id().equals(transceiver.getReceiver().id())) {
-                  params.putMap("transceiver", transceiverToMap(transceiver));
+                  int transceiverId = transceiversIdCounter++;
+                  this.transceivers.put(transceiverId, transceiver);
+                  params.putMap("transceiver", transceiverToMap(transceiverId, transceiver));
               }
           }
       }
@@ -583,14 +581,19 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private String transceiverDirectionString(RtpTransceiver.RtpTransceiverDirection direction) {
       switch (direction) {
           case SEND_RECV:
+              Log.d(TAG, "sendrecv");
               return "sendrecv";
           case SEND_ONLY:
+              Log.d(TAG, "sendonly");
               return "sendonly";
           case RECV_ONLY:
+              Log.d(TAG, "recvonly");
               return "recvonly";
           case INACTIVE:
+              Log.d(TAG, "inactive");
               return "inactive";
       }
+      Log.d(TAG, "null");
       return null;
   }
 
@@ -840,19 +843,61 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   private Map<String, Object> rtpReceiverToMap(RtpReceiver receiver){
       ConstraintsMap info = new ConstraintsMap();
-      info.putString("receiverId", receiver.id());
-      info.putMap("rtpParameters", rtpParametersToMap(receiver.getParameters()));
-      info.putMap("track", mediaTrackToMap(receiver.track()));
+      String id = receiver.id();
+      if (id == null) {
+          Log.d(TAG, "Receiver's ID is null");
+      } else {
+          Log.d(TAG, "Receiver's ID is not null");
+      }
+      Log.d(TAG, "Putting receiver ID to the Map...");
+      info.putString("receiverId", id);
+      Log.d(TAG, "...receiverId now in the Map!");
+      Log.d(TAG, "Getting RtpParameters from the Receiver...");
+      RtpParameters parameters = receiver.getParameters();
+      if (parameters == null) {
+          Log.d(TAG, "RtpParameters is not null");
+      } else {
+          Log.d(TAG, "RtpParameters is null");
+      }
+      Log.d(TAG, "Converting RtpParameters to the Map...");
+      Map<String, Object> rtpParametersMap = rtpParametersToMap(parameters);
+      Log.d(TAG, "...RtpParameters converted to the Map");
+      info.putMap("rtpParameters", rtpParametersMap);
+      MediaStreamTrack track = receiver.track();
+      if (track == null) {
+          Log.d(TAG, "MediaStreamTrack is null");
+      } else {
+          Log.d(TAG, "MediaStreamTrack is not null");
+      }
+      Log.d(TAG, "Converting MediaStreamTrack to the Map...");
+      Map<String, Object> trackMap = mediaTrackToMap(track);
+      Log.d(TAG, "...MediaStreamTrack converted to the Map");
+      info.putMap("track", trackMap);
       return info.toMap();
   }
 
-  Map<String, Object> transceiverToMap(RtpTransceiver transceiver){
+  Map<String, Object> transceiverToMap(int id, RtpTransceiver transceiver){
+      Log.d(TAG, "71");
       ConstraintsMap info = new ConstraintsMap();
-      info.putString("transceiverId", transceiver.getMid());
+      Log.d(TAG, "72");
+      info.putInt("transceiverId", id);
+      Log.d(TAG, "73");
       info.putString("mid", transceiver.getMid());
+      Log.d(TAG, "74");
       info.putString("direction", transceiverDirectionString(transceiver.getDirection()));
+      Log.d(TAG, "75");
       info.putMap("sender", rtpSenderToMap(transceiver.getSender()));
-      info.putMap("receiver", rtpReceiverToMap(transceiver.getReceiver()));
+      Log.d(TAG, "76");
+      RtpReceiver receiver = transceiver.getReceiver();
+      if (receiver == null) {
+          Log.d(TAG, "Receiver is null");
+      }
+      Log.d(TAG, "Trying to convert receiver to the Map...");
+      Map<String, Object> receiverMap = rtpReceiverToMap(receiver);
+      Log.d(TAG, "...receiver successfully converted to the Map");
+      Log.d(TAG, "Putting this receiver Map to the info Map...");
+      info.putMap("receiver", receiverMap);
+      Log.d(TAG, "...receiver now in the Map!");
       return info.toMap();
   }
 
@@ -882,26 +927,42 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   }
 
   public void addTransceiver(MediaStreamTrack track, Map<String, Object> transceiverInit,  Result result) {
+      Log.d(TAG, "Java 1");
       RtpTransceiver  transceiver;
       if(transceiverInit != null){
           transceiver = peerConnection.addTransceiver(track, mapToRtpTransceiverInit(transceiverInit));
       } else {
           transceiver = peerConnection.addTransceiver(track);
       }
-      result.success(transceiverToMap(transceiver));
+      Log.d(TAG, "Java 2");
+      int transceiverId = transceiversIdCounter++;
+      transceivers.put(transceiverId, transceiver);
+      Log.d(TAG, "Java 3");
+      result.success(transceiverToMap(transceiverId, transceiver));
   }
 
   public void addTransceiverOfType(String mediaType, Map<String, Object> transceiverInit,  Result result) {
+      Log.d(TAG, "61");
       RtpTransceiver  transceiver;
       if(transceiverInit != null){
+          Log.d(TAG, "62");
           transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType), mapToRtpTransceiverInit(transceiverInit));
+          Log.d(TAG, "63");
       } else {
+          Log.d(TAG, "65");
           transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType));
+          Log.d(TAG, "66");
       }
-      result.success(transceiverToMap(transceiver));
+      Log.d(TAG, "Transceiver of type added");
+      Log.d(TAG, "67");
+      int transceiverId = transceiversIdCounter++;
+      transceivers.put(transceiverId, transceiver);
+      Log.d(TAG, "68");
+      result.success(transceiverToMap(transceiverId, transceiver));
+      Log.d(TAG, "69");
   }
 
-  public void rtpTransceiverSetDirection(String direction, String transceiverId, Result result) {
+  public void rtpTransceiverSetDirection(String direction, int transceiverId, Result result) {
       RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
       if (transceiver == null) {
           resultError("rtpTransceiverSetDirection", "transceiver is null", result);
@@ -911,7 +972,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       result.success(null);
   }
 
-  public void rtpTransceiverGetCurrentDirection(String transceiverId, Result result) {
+  public void rtpTransceiverGetCurrentDirection(int transceiverId, Result result) {
       RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
       if (transceiver == null) {
           resultError("rtpTransceiverGetCurrentDirection", "transceiver is null", result);
@@ -922,7 +983,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       result.success(params.toMap());
   }
 
-    public void rtpTransceiverStop(String transceiverId, Result result) {
+    public void rtpTransceiverStop(int transceiverId, Result result) {
         RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
         if (transceiver == null) {
             resultError("rtpTransceiverStop", "transceiver is null", result);
@@ -991,7 +1052,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
       ConstraintsArray transceiversParams = new ConstraintsArray();
       for(RtpTransceiver receiver : transceivers){
-        transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(receiver)));
+          int transceiverId = transceiversIdCounter++;
+          this.transceivers.put(transceiverId, receiver);
+        transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(transceiverId, receiver)));
       }
       ConstraintsMap params = new ConstraintsMap();
       params.putArray("transceivers", transceiversParams.toArrayList());

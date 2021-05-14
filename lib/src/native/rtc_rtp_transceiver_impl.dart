@@ -88,10 +88,10 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
 
   final MethodChannel _channel = WebRTC.methodChannel();
   String _peerConnectionId;
-  String _id;
+  int _id;
   bool _stop = false;
   TransceiverDirection _direction;
-  String _mid;
+  String? _mid;
   RTCRtpSender _sender;
   RTCRtpReceiver _receiver;
 
@@ -103,7 +103,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   TransceiverDirection get currentDirection => _direction;
 
   @override
-  String get mid => _mid;
+  String? get mid => _mid;
 
   @override
   RTCRtpSender get sender => _sender;
@@ -115,7 +115,7 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
   bool get stoped => _stop;
 
   @override
-  String get transceiverId => _id;
+  int get transceiverId => _id;
 
   @override
   Future<void> setDirection(TransceiverDirection direction) async {
