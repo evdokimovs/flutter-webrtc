@@ -150,11 +150,12 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         }
     }
 
-    RtpTransceiver getRtpTransceiverById(String id) {
+    RtpTransceiver getRtpTransceiverById(int id) {
         List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+        int transceiverId = 0;
         for(RtpTransceiver transceiver : transceivers) {
-            if (id.equals(transceiver.getMid())){
-                return transceiver;
+            if (transceiverId++ == id) {
+              return transceiver;
             }
         }
         return null;
@@ -430,9 +431,10 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
       if(this.configuration.sdpSemantics == PeerConnection.SdpSemantics.UNIFIED_PLAN) {
           List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+          int id = 0;
           for( RtpTransceiver transceiver : transceivers ) {
               if(transceiver.getReceiver() != null && receiver.id().equals(transceiver.getReceiver().id())) {
-                  params.putMap("transceiver", transceiverToMap(transceiver));
+                  params.putMap("transceiver", transceiverToMap(id++, transceiver));
               }
           }
       }
@@ -846,9 +848,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       return info.toMap();
   }
 
-  Map<String, Object> transceiverToMap(RtpTransceiver transceiver){
+  Map<String, Object> transceiverToMap(int id, RtpTransceiver transceiver){
       ConstraintsMap info = new ConstraintsMap();
-      info.putString("transceiverId", transceiver.getMid());
+      info.putInt("transceiverId", id);
       info.putString("mid", transceiver.getMid());
       info.putString("direction", transceiverDirectionString(transceiver.getDirection()));
       info.putMap("sender", rtpSenderToMap(transceiver.getSender()));
@@ -888,7 +890,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       } else {
           transceiver = peerConnection.addTransceiver(track);
       }
-      result.success(transceiverToMap(transceiver));
+      int id = peerConnection.getTransceivers().size() - 1;
+      result.success(transceiverToMap(id, transceiver));
   }
 
   public void addTransceiverOfType(String mediaType, Map<String, Object> transceiverInit,  Result result) {
@@ -898,10 +901,12 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       } else {
           transceiver = peerConnection.addTransceiver(stringToMediaType(mediaType));
       }
-      result.success(transceiverToMap(transceiver));
+      List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
+      int id = transceivers.size() - 1;
+      result.success(transceiverToMap(id, transceivers.get(id)));
   }
 
-  public void rtpTransceiverSetDirection(String direction, String transceiverId, Result result) {
+  public void rtpTransceiverSetDirection(String direction, int transceiverId, Result result) {
       RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
       if (transceiver == null) {
           resultError("rtpTransceiverSetDirection", "transceiver is null", result);
@@ -911,7 +916,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       result.success(null);
   }
 
-  public void rtpTransceiverGetCurrentDirection(String transceiverId, Result result) {
+  public void rtpTransceiverGetCurrentDirection(int transceiverId, Result result) {
       RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
       if (transceiver == null) {
           resultError("rtpTransceiverGetCurrentDirection", "transceiver is null", result);
@@ -922,7 +927,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       result.success(params.toMap());
   }
 
-    public void rtpTransceiverStop(String transceiverId, Result result) {
+    public void rtpTransceiverStop(int transceiverId, Result result) {
         RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
         if (transceiver == null) {
             resultError("rtpTransceiverStop", "transceiver is null", result);
@@ -990,8 +995,9 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     public void getTransceivers(Result result) {
       List<RtpTransceiver> transceivers = peerConnection.getTransceivers();
       ConstraintsArray transceiversParams = new ConstraintsArray();
+      int id = 0;
       for(RtpTransceiver receiver : transceivers){
-        transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(receiver)));
+        transceiversParams.pushMap(new ConstraintsMap(transceiverToMap(id++, receiver)));
       }
       ConstraintsMap params = new ConstraintsMap();
       params.putArray("transceivers", transceiversParams.toArrayList());
