@@ -40,7 +40,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private PeerConnection peerConnection;
   private PeerConnection.RTCConfiguration configuration;
   final Map<String, MediaStream> remoteStreams = new HashMap<>();
-  final Map<String, MediaStreamTrack> remoteTracks = new HashMap<>();
   private final StateProvider stateProvider;
   private final EventChannel eventChannel;
   private EventChannel.EventSink eventSink;
@@ -82,7 +81,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   void close() {
     peerConnection.close();
     remoteStreams.clear();
-    remoteTracks.clear();
     dataChannels.clear();
   }
 
@@ -181,12 +179,23 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
         return null;
     }
 
+    MediaStreamTrack getRemoteTrackById(String id) {
+      List<RtpReceiver> receivers = peerConnection.getReceivers();
+      for(RtpReceiver receiver : receivers) {
+        MediaStreamTrack track = receiver.track();
+        if (track != null && track.id().equals(id)) {
+          return track;
+        }
+      }
+      return null;
+    }
+
   void getStats(String trackId, final Result result) {
     MediaStreamTrack track = null;
     if (trackId == null
         || trackId.isEmpty()
         || (track = stateProvider.getLocalTracks().get(trackId)) != null
-        || (track = remoteTracks.get(trackId)) != null) {
+        || (track = getRemoteTrackById(trackId)) != null) {
       peerConnection.getStats(
           new StatsObserver() {
             @Override
@@ -321,8 +330,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       VideoTrack track = mediaStream.videoTracks.get(i);
       String trackId = track.id();
 
-      remoteTracks.put(trackId, track);
-
       ConstraintsMap trackInfo = new ConstraintsMap();
       trackInfo.putString("id", trackId);
       trackInfo.putString("label", "Video");
@@ -335,8 +342,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     for (int i = 0; i < mediaStream.audioTracks.size(); i++) {
       AudioTrack track = mediaStream.audioTracks.get(i);
       String trackId = track.id();
-
-      remoteTracks.put(trackId, track);
 
       ConstraintsMap trackInfo = new ConstraintsMap();
       trackInfo.putString("id", trackId);
@@ -363,13 +368,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   public void onRemoveStream(MediaStream mediaStream) {
 
     String streamId = mediaStream.getId();
-
-    for (VideoTrack track : mediaStream.videoTracks) {
-      this.remoteTracks.remove(track.id());
-    }
-    for (AudioTrack track : mediaStream.audioTracks) {
-      this.remoteTracks.remove(track.id());
-    }
 
     this.remoteStreams.remove(streamId);
     ConstraintsMap params = new ConstraintsMap();
@@ -914,6 +912,17 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
       }
       transceiver.setDirection(stringToTransceiverDirection(direction));
       result.success(null);
+  }
+
+  public void rtpTransceiverGetMid(int transceiverId, Result result) {
+    RtpTransceiver transceiver = getRtpTransceiverById(transceiverId);
+    if (transceiver == null) {
+      resultError("rtpTransceiverGetMid", "transceiver is null", result);
+      return;
+    }
+    ConstraintsMap params = new ConstraintsMap();
+    params.putString("result", transceiver.getMid());
+    result.success(params.toMap());
   }
 
   public void rtpTransceiverGetCurrentDirection(int transceiverId, Result result) {

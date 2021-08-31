@@ -38,5 +38,7 @@ abstract class RTCRtpTransceiver {
 
   Future<TransceiverDirection> getCurrentDirection();
 
+  Future<void> sync();
+
   Future<void> stop();
 }

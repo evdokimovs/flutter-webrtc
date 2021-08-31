@@ -125,9 +125,37 @@ class RTCRtpTransceiverNative extends RTCRtpTransceiver {
         'transceiverId': _id,
         'direction': typeRtpTransceiverDirectionToString[direction]
       });
+      _direction = direction;
     } on PlatformException catch (e) {
       throw 'Unable to RTCRtpTransceiver::setDirection: ${e.message}';
     }
+  }
+
+  Future<void> _syncMid() async {
+    try {
+      print('Start syncing MID of Transceiver with ID $_id');
+      final response = await WebRTC.invokeMethod(
+        'rtpTransceiverGetMid', <String, dynamic>{
+          'peerConnectionId': _peerConnectionId,
+          'transceiverId': _id,
+      });
+
+      _mid = response['result'];
+      print('MID of Transceiver with ID $_id was synced');
+    } on PlatformException catch (e) {
+      throw 'Unable to RTCRtpTransceiver::getMid: ${e.message}';
+    }
+  }
+
+  void foobar() async {
+    while (true) {
+      await _syncMid();
+    }
+  }
+
+  @override
+  Future<void> sync() async {
+    await _syncMid();
   }
 
   @override

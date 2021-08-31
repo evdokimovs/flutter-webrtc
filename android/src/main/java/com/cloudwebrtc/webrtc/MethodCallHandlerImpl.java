@@ -602,6 +602,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         rtpTransceiverSetDirection(peerConnectionId, direction, transceiverId, result);
         break;
       }
+      case "rtpTransceiverGetMid": {
+        String peerConnectionId = call.argument("peerConnectionId");
+        int transceiverId = call.argument("transceiverId");
+        rtpTransceiverGetMid(peerConnectionId, transceiverId, result);
+        break;
+      }
       case "rtpTransceiverGetCurrentDirection": {
         String peerConnectionId = call.argument("peerConnectionId");
         int transceiverId = call.argument("transceiverId");
@@ -1029,7 +1035,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (track == null) {
       for (Entry<String, PeerConnectionObserver> entry : mPeerConnectionObservers.entrySet()) {
         PeerConnectionObserver pco = entry.getValue();
-        track = pco.remoteTracks.get(trackId);
+        track = pco.getRemoteTrackById(trackId);
 
         if (track == null) {
           track = pco.getTransceiversTrack(trackId);
@@ -1579,6 +1585,15 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       resultError("rtpTransceiverSetDirection", "peerConnection is null", result);
     } else {
       pco.rtpTransceiverSetDirection(direction, transceiverId, result);
+    }
+  }
+
+  public void rtpTransceiverGetMid(String peerConnectionId, int transceiverId, Result result) {
+    PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
+    if (pco == null || pco.getPeerConnection() == null) {
+      resultError("rtpTransceiverGetMid", "peerConnection is null", result);
+    } else {
+      pco.rtpTransceiverGetMid(transceiverId, result);
     }
   }
 
