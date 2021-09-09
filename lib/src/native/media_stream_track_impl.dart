@@ -109,6 +109,7 @@ class MediaStreamTrackNative extends MediaStreamTrack {
 
   @override
   Future<void> stop() async {
+    print("Stopping Track on Flutter side");
     await _channel.invokeMethod(
       'trackDispose',
       <String, dynamic>{'trackId': _trackId},

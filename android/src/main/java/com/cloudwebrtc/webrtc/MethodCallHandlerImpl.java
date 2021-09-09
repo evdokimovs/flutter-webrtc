@@ -180,6 +180,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
     ensureInitialized();
+    Log.d("FLUTTER", "AAAAAAAAAAAAAAAAAAAAA");
 
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
@@ -218,12 +219,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
       case "mediaStreamGetTracks": {
+        Log.d("FLUTTER", "Getting tracks of the MediaStream");
         String streamId = call.argument("streamId");
         MediaStream stream = getStreamForId(streamId, "");
         Map<String, Object> resultMap = new HashMap<>();
         List<Object> audioTracks = new ArrayList<>();
         List<Object> videoTracks = new ArrayList<>();
         for (AudioTrack track : stream.audioTracks) {
+          Log.d("FLUTTER", "Inserting audio Local track with ID: " + track.id());
           localTracks.put(track.id(), track);
           Map<String, Object> trackMap = new HashMap<>();
           trackMap.put("enabled", track.enabled());
@@ -235,6 +238,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           audioTracks.add(trackMap);
         }
         for (VideoTrack track : stream.videoTracks) {
+          Log.d("FLUTTER", "Inserting video Local track with ID: " + track.id());
           localTracks.put(track.id(), track);
           Map<String, Object> trackMap = new HashMap<>();
           trackMap.put("enabled", track.enabled());
@@ -386,6 +390,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       }
       case "trackDispose": {
         String trackId = call.argument("trackId");
+        Log.d("FLUTTER", "1 Disposing Local Track with ID: " + trackId);
         localTracks.remove(trackId);
         result.success(null);
         break;
@@ -1162,6 +1167,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     if (track.kind().equals("video")) {
       getUserMediaImpl.removeVideoCapturer(id);
     }
+    Log.d("FLUTTER", "2 Disposing Local Track with ID: " + id);
     localTracks.remove(id);
     // What exactly does `detached` mean in doc?
     // see: https://www.w3.org/TR/mediacapture-streams/#track-detached
@@ -1196,7 +1202,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void mediaStreamAddTrack(final String streamId, final String trackId, Result result) {
     MediaStream mediaStream = localStreams.get(streamId);
     if (mediaStream != null) {
-      MediaStreamTrack track = getTrackForId(trackId);//localTracks.get(trackId);
+      MediaStreamTrack track = localTracks.get(trackId);
       if (track != null) {
         if (track.kind().equals("audio")) {
           mediaStream.addTrack((AudioTrack) track);
@@ -1243,6 +1249,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       return;
     }
     track.setEnabled(false); // should we do this?
+    Log.d("FLUTTER", "3 Disposing Local Track with ID: " + _trackId);
     localTracks.remove(_trackId);
     if (track.kind().equals("audio")) {
       stream.removeTrack((AudioTrack) track);
@@ -1506,10 +1513,12 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     MediaStream mediaStream = localStreams.get(id);
     if (mediaStream != null) {
       for (VideoTrack track : mediaStream.videoTracks) {
+        Log.d("FLUTTER", "4 Disposing Local Track with ID: " + track.id());
         localTracks.remove(track.id());
         getUserMediaImpl.removeVideoCapturer(track.id());
       }
       for (AudioTrack track : mediaStream.audioTracks) {
+        Log.d("FLUTTER", "5 Disposing Local Track with ID: " + track.id());
         localTracks.remove(track.id());
       }
       localStreams.remove(id);
