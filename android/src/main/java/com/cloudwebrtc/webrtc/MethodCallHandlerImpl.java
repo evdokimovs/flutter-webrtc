@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.LongSparseArray;
 
@@ -47,6 +49,7 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.PeerConnectionFactory.InitializationOptions;
 import org.webrtc.PeerConnectionFactory.Options;
 import org.webrtc.RtpSender;
+import org.webrtc.RtpTransceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
@@ -56,6 +59,7 @@ import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,6 +79,18 @@ import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 import static com.cloudwebrtc.webrtc.utils.MediaConstraintsUtils.parseMediaConstraints;
 
 public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
+  public static Object fuck_encapsulation(Object obj, String fieldName) {
+    try {
+      Field f = obj.getClass().getDeclaredField(fieldName);
+      f.setAccessible(true);
+      return f.get(obj);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(0); // trust me i'm an engineer
+      return null;
+    }
+  }
+
   interface AudioManager {
 
     void onAudioManagerRequested(boolean requested);
@@ -427,13 +443,26 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
           resultError("videoRendererSetSrcObject", "render [" + textureId + "] not found !", result);
           return;
         }
-        MediaStream stream = null;
         if (ownerTag.equals("local")) {
-          stream = localStreams.get(streamId);
+          render.setStream(localStreams.get(streamId));
         } else {
-          stream = getStreamForId(streamId, ownerTag);
+          PeerConnectionObserver pc = (PeerConnectionObserver) mPeerConnectionObservers.values().toArray()[0];
+          Handler handler = new Handler(Looper.getMainLooper());
+          handler.postDelayed(() -> {
+            List<RtpTransceiver> transceivers = (List<RtpTransceiver>) MethodCallHandlerImpl.fuck_encapsulation(pc.peerConnection, "transceivers");
+
+            for (RtpTransceiver tr : transceivers) {
+              if (
+                      tr.getMediaType().equals(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO) &&
+                              tr.getCurrentDirection().equals(RtpTransceiver.RtpTransceiverDirection.SEND_RECV)
+              ) {
+                render.setVideoTrack((VideoTrack) tr.getReceiver().track());
+                return;
+              }
+            }
+            throw new IllegalStateException("could not find appropriate track to render");
+          }, 2000);
         }
-        render.setStream(stream);
         result.success(null);
         break;
       }

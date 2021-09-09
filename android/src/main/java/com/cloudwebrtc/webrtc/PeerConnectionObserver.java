@@ -37,7 +37,7 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
   private final SparseArray<DataChannel> dataChannels = new SparseArray<>();
   private BinaryMessenger messenger;
   private final String id;
-  private PeerConnection peerConnection;
+  public PeerConnection peerConnection;
   private PeerConnection.RTCConfiguration configuration;
   final Map<String, MediaStream> remoteStreams = new HashMap<>();
   private final StateProvider stateProvider;
