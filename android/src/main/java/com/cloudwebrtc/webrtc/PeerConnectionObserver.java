@@ -65,7 +65,6 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
     eventSink = new AnyThreadSink(sink);
   }
 
-  @Override
   public void onCancel(Object o) {
     eventSink = null;
   }
@@ -378,6 +377,8 @@ class PeerConnectionObserver implements PeerConnection.Observer, EventChannel.St
 
   @Override
   public void onTrack(RtpTransceiver transceiver) {
+      MediaStreamTrack track = transceiver.getReceiver().track();
+      this.stateProvider.getLocalTracks().put(track.id(), track);
       /*
       ConstraintsMap params = new ConstraintsMap();
       params.putString("event", "onTrack");

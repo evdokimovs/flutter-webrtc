@@ -180,8 +180,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
     ensureInitialized();
-    Log.d("FLUTTER", "AAAAAAAAAAAAAAAAAAAAA");
-
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
       case "createPeerConnection": {
