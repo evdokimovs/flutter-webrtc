@@ -582,96 +582,96 @@ void main() {
   //   await t.dispose();
   // });
   //
-  // testWidgets('Track Onended', (WidgetTester tester) async {
-  //   var pc1 = await PeerConnection.create(IceTransportType.all, []);
-  //   var tr = await pc1.addTransceiver(
-  //       MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
-  //
-  //   var pc2 = await PeerConnection.create(IceTransportType.all, []);
-  //   final completer = Completer<void>();
-  //   pc2.onTrack((track, transceiver) async {
-  //     track.onEnded(() async {
-  //       completer.complete();
-  //       await track.stop();
-  //       await track.dispose();
-  //     });
-  //     await transceiver.dispose();
-  //   });
-  //
-  //   await pc2.setRemoteDescription(await pc1.createOffer());
-  //   var transceivers = await pc2.getTransceivers();
-  //   await transceivers[0].stop();
-  //   await completer.future.timeout(const Duration(seconds: 10));
-  //
-  //   for (var t in transceivers) {
-  //     await t.dispose();
-  //   }
-  //   await pc1.close();
-  //   await pc2.close();
-  //   await tr.dispose();
-  // });
-  //
-  // testWidgets('Track Onended not working after stop()',
-  //     (WidgetTester tester) async {
-  //   var capsAudioOnly = DeviceConstraints();
-  //   capsAudioOnly.audio.mandatory = AudioConstraints();
-  //
-  //   var tracksAudioOnly = await getUserMedia(capsAudioOnly);
-  //   expect(tracksAudioOnly.length, equals(1));
-  //
-  //   var track = tracksAudioOnly[0];
-  //
-  //   final completer = Completer<void>();
-  //   track.onEnded(() {
-  //     completer.complete();
-  //   });
-  //
-  //   var server = IceServer(['stun:stun.l.google.com:19302']);
-  //   var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
-  //   var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
-  //
-  //   pc1.onIceCandidate((IceCandidate candidate) async {
-  //     if (!pc2.closed) {
-  //       await pc2.addIceCandidate(candidate);
-  //     }
-  //   });
-  //
-  //   pc2.onIceCandidate((IceCandidate candidate) async {
-  //     if (!pc1.closed) {
-  //       await pc1.addIceCandidate(candidate);
-  //     }
-  //   });
-  //
-  //   var audioTransceiver = await pc1.addTransceiver(
-  //       MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
-  //
-  //   audioTransceiver.sender.replaceTrack(track);
-  //
-  //   var offer = await pc1.createOffer();
-  //   await pc1.setLocalDescription(offer);
-  //   await pc2.setRemoteDescription(offer);
-  //
-  //   var answer = await pc2.createAnswer();
-  //   await pc2.setLocalDescription(answer);
-  //   await pc1.setRemoteDescription(answer);
-  //
-  //   expect(await track.state(), equals(MediaStreamTrackState.live));
-  //
-  //   await track.stop();
-  //
-  //   try {
-  //     await completer.future.timeout(const Duration(seconds: 3));
-  //     throw Exception('Completer completed');
-  //   } catch (e) {
-  //     expect(e is TimeoutException, isTrue);
-  //     expect(await track.state(), equals(MediaStreamTrackState.ended));
-  //   }
-  //
-  //   await pc1.close();
-  //   await pc2.close();
-  //   await audioTransceiver.dispose();
-  //   await track.dispose();
-  // });
+  testWidgets('Track Onended', (WidgetTester tester) async {
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var tr = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendRecv));
+
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
+    final completer = Completer<void>();
+    pc2.onTrack((track, transceiver) async {
+      track.onEnded(() async {
+        completer.complete();
+        await track.stop();
+        await track.dispose();
+      });
+      await transceiver.dispose();
+    });
+
+    await pc2.setRemoteDescription(await pc1.createOffer());
+    var transceivers = await pc2.getTransceivers();
+    await transceivers[0].stop();
+    await completer.future.timeout(const Duration(seconds: 10));
+
+    for (var t in transceivers) {
+      await t.dispose();
+    }
+    await pc1.close();
+    await pc2.close();
+    await tr.dispose();
+  });
+
+  testWidgets('Track Onended not working after stop()',
+      (WidgetTester tester) async {
+    var capsAudioOnly = DeviceConstraints();
+    capsAudioOnly.audio.mandatory = AudioConstraints();
+
+    var tracksAudioOnly = await getUserMedia(capsAudioOnly);
+    expect(tracksAudioOnly.length, equals(1));
+
+    var track = tracksAudioOnly[0];
+
+    final completer = Completer<void>();
+    track.onEnded(() {
+      completer.complete();
+    });
+
+    var server = IceServer(['stun:stun.l.google.com:19302']);
+    var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
+    var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
+
+    pc1.onIceCandidate((IceCandidate candidate) async {
+      if (!pc2.closed) {
+        await pc2.addIceCandidate(candidate);
+      }
+    });
+
+    pc2.onIceCandidate((IceCandidate candidate) async {
+      if (!pc1.closed) {
+        await pc1.addIceCandidate(candidate);
+      }
+    });
+
+    var audioTransceiver = await pc1.addTransceiver(
+        MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+
+    audioTransceiver.sender.replaceTrack(track);
+
+    var offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+
+    var answer = await pc2.createAnswer();
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    expect(await track.state(), equals(MediaStreamTrackState.live));
+
+    await track.stop();
+
+    try {
+      await completer.future.timeout(const Duration(seconds: 3));
+      throw Exception('Completer completed');
+    } catch (e) {
+      expect(e is TimeoutException, isTrue);
+      expect(await track.state(), equals(MediaStreamTrackState.ended));
+    }
+
+    await pc1.close();
+    await pc2.close();
+    await audioTransceiver.dispose();
+    await track.dispose();
+  });
 
   testWidgets('Connect two peers', (WidgetTester tester) async {
       print("1");
