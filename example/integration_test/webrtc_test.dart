@@ -674,12 +674,14 @@ void main() {
   // });
 
   testWidgets('Connect two peers', (WidgetTester tester) async {
+      print("1");
     var caps = DeviceConstraints();
     caps.audio.mandatory = AudioConstraints();
     caps.video.mandatory = DeviceVideoConstraints();
     caps.video.mandatory!.width = 640;
     caps.video.mandatory!.height = 480;
     caps.video.mandatory!.fps = 30;
+      print("2");
 
     var tracks = await getUserMedia(caps);
 
@@ -687,10 +689,12 @@ void main() {
         tracks.firstWhere((track) => track.kind() == MediaKind.video);
     var audioTrack =
         tracks.firstWhere((track) => track.kind() == MediaKind.audio);
+      print("3");
 
     var server = IceServer(['stun:stun.l.google.com:19302']);
     var pc1 = await PeerConnection.create(IceTransportType.all, [server]);
     var pc2 = await PeerConnection.create(IceTransportType.all, [server]);
+      print("4");
 
     var futures = List<Completer>.generate(6, (_) => Completer());
     pc1.onConnectionStateChange((state) {
@@ -698,12 +702,14 @@ void main() {
         futures[0].complete();
       }
     });
+      print("5");
 
     pc2.onConnectionStateChange((state) {
       if (state == PeerConnectionState.connected) {
         futures[1].complete();
       }
     });
+      print("6");
 
     pc2.onTrack((track, trans) async {
       if (track.kind() == MediaKind.video) {
@@ -715,6 +721,7 @@ void main() {
       await track.dispose();
       await trans.dispose();
     });
+      print("7");
 
     pc1.onIceCandidate((IceCandidate candidate) async {
       if (!pc2.closed) {
@@ -725,6 +732,7 @@ void main() {
         futures[4].complete();
       }
     });
+      print("8");
 
     pc2.onIceCandidate((IceCandidate candidate) async {
       if (!pc1.closed) {
@@ -735,25 +743,31 @@ void main() {
         futures[5].complete();
       }
     });
+      print("9");
 
     var videoTransceiver = await pc1.addTransceiver(
         MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
     var audioTransceiver = await pc1.addTransceiver(
         MediaKind.audio, RtpTransceiverInit(TransceiverDirection.sendOnly));
+      print("10");
 
     videoTransceiver.sender.replaceTrack(videoTrack);
     audioTransceiver.sender.replaceTrack(audioTrack);
+      print("11");
 
     var offer = await pc1.createOffer();
     await pc1.setLocalDescription(offer);
     await pc2.setRemoteDescription(offer);
+      print("12");
 
     var answer = await pc2.createAnswer();
     await pc2.setLocalDescription(answer);
     await pc1.setRemoteDescription(answer);
+      print("13");
 
     await Future.wait(futures.map((e) => e.future))
         .timeout(const Duration(seconds: 5));
+      print("14");
 
     await pc1.close();
     await pc2.close();
@@ -763,6 +777,7 @@ void main() {
     await audioTrack.dispose();
     await videoTransceiver.dispose();
     await audioTransceiver.dispose();
+      print("15");
   });
 
   // testWidgets('Clone track', (WidgetTester tester) async {
