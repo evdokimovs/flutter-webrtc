@@ -217,7 +217,7 @@ jobs:
           # - windows
     runs-on: ${{ (matrix.platform == 'linux' &&   'ubuntu-latest')
               || (matrix.platform == 'windows' && 'windows-latest')
-              ||                                  'macos-14' }}
+              ||                                  'macos-13' }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@v1
@@ -270,7 +270,7 @@ jobs:
           os: iOS
         if: ${{ matrix.platform == 'ios' }}
 
-      # xcrun simctl spawn booted log stream --predicate 'eventMessage contains "com.instrumentisto.medeaFlutterWebrtcExample"' &
+      # xcrun simctl spawn booted log stream --predicate 'eventMessage contains "com.instrumentisto.medeaFlutterWebrtcExample"' & 
       - name: Test on `${{ matrix.platform }}` platform with simulator
         continue-on-error: true
         run: make flutter.test.mobile device=${{ steps.simulator.outputs.udid }} debug=yes
@@ -284,7 +284,7 @@ jobs:
         run: make flutter.test.desktop device=${{ matrix.platform }}
         if: ${{ matrix.platform == 'macos'
              || matrix.platform == 'windows' }}
-
+             
       # - name: LOGLOG0
       #   run: cat ./32.log re
       - name: LOGLOG
@@ -299,7 +299,7 @@ jobs:
       # - name: LOGLOG3
       #   run: sudo find /System/Volumes/Data/Users/runner/Library/Developer/CoreSimulator/Devices -name LOGLOG.log -exec cat {} +
 
-
+        
 
 #          cat /LOGLOG.log 82B97CE1-0164-46FA-BBAF-47796068D1E5
 #  /System/Volumes/Data/Users/runner/Library/Developer/CoreSimulator/Devices/70C4AA06-341E-4BBD-9909-D77E3A60B92E/data/Containers/Data/Application/82B97CE1-0164-46FA-BBAF-47796068D1E5/Documents/LOGLOG.log
