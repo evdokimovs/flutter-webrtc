@@ -780,65 +780,65 @@ void main() {
       print("15");
   });
 
-  // testWidgets('Clone track', (WidgetTester tester) async {
-  //   var caps = DeviceConstraints();
-  //   caps.video.mandatory = DeviceVideoConstraints();
-  //   caps.video.mandatory!.width = 640;
-  //   caps.video.mandatory!.height = 480;
-  //   caps.video.mandatory!.fps = 30;
-  //
-  //   var pc1 = await PeerConnection.create(IceTransportType.all, []);
-  //   var pc2 = await PeerConnection.create(IceTransportType.all, []);
-  //   var onEndedComplete = Completer();
-  //   pc2.onTrack((track, transceiver) {
-  //     if (transceiver.mid == '0') {
-  //       track.onEnded(() async {
-  //         onEndedComplete.complete();
-  //         await track.stop();
-  //         await track.dispose();
-  //         await transceiver.dispose();
-  //       });
-  //     }
-  //   });
-  //
-  //   var t1 = await pc1.addTransceiver(
-  //       MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
-  //   var t2 = await pc1.addTransceiver(
-  //       MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
-  //
-  //   var tracks = await getUserMedia(caps);
-  //
-  //   var videoTrack =
-  //       tracks.firstWhere((track) => track.kind() == MediaKind.video);
-  //   var cloneVideoTrack = await videoTrack.clone();
-  //   await cloneVideoTrack.setEnabled(false);
-  //
-  //   await t1.sender.replaceTrack(videoTrack);
-  //   await t2.sender.replaceTrack(cloneVideoTrack);
-  //
-  //   await pc2.setRemoteDescription(await pc1.createOffer());
-  //
-  //   var transceivers = await pc2.getTransceivers();
-  //   await transceivers.firstWhere((t) => t.mid == '0').stop();
-  //
-  //   await onEndedComplete.future.timeout(const Duration(seconds: 10));
-  //   expect(videoTrack.id(), isNot(equals(cloneVideoTrack.id())));
-  //   expect(videoTrack.isEnabled(), isNot(equals(cloneVideoTrack.isEnabled())));
-  //
-  //   await pc1.close();
-  //   await pc2.close();
-  //   await t1.dispose();
-  //   await t2.dispose();
-  //   for (var t in tracks) {
-  //     await t.stop();
-  //     await t.dispose();
-  //   }
-  //   for (var t in transceivers) {
-  //     await t.dispose();
-  //   }
-  //   await cloneVideoTrack.stop();
-  //   await cloneVideoTrack.dispose();
-  // });
+  testWidgets('Clone track', (WidgetTester tester) async {
+    var caps = DeviceConstraints();
+    caps.video.mandatory = DeviceVideoConstraints();
+    caps.video.mandatory!.width = 640;
+    caps.video.mandatory!.height = 480;
+    caps.video.mandatory!.fps = 30;
+
+    var pc1 = await PeerConnection.create(IceTransportType.all, []);
+    var pc2 = await PeerConnection.create(IceTransportType.all, []);
+    var onEndedComplete = Completer();
+    pc2.onTrack((track, transceiver) {
+      if (transceiver.mid == '0') {
+        track.onEnded(() async {
+          onEndedComplete.complete();
+          await track.stop();
+          await track.dispose();
+          await transceiver.dispose();
+        });
+      }
+    });
+
+    var t1 = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+    var t2 = await pc1.addTransceiver(
+        MediaKind.video, RtpTransceiverInit(TransceiverDirection.sendOnly));
+
+    var tracks = await getUserMedia(caps);
+
+    var videoTrack =
+        tracks.firstWhere((track) => track.kind() == MediaKind.video);
+    var cloneVideoTrack = await videoTrack.clone();
+    await cloneVideoTrack.setEnabled(false);
+
+    await t1.sender.replaceTrack(videoTrack);
+    await t2.sender.replaceTrack(cloneVideoTrack);
+
+    await pc2.setRemoteDescription(await pc1.createOffer());
+
+    var transceivers = await pc2.getTransceivers();
+    await transceivers.firstWhere((t) => t.mid == '0').stop();
+
+    await onEndedComplete.future.timeout(const Duration(seconds: 10));
+    expect(videoTrack.id(), isNot(equals(cloneVideoTrack.id())));
+    expect(videoTrack.isEnabled(), isNot(equals(cloneVideoTrack.isEnabled())));
+
+    await pc1.close();
+    await pc2.close();
+    await t1.dispose();
+    await t2.dispose();
+    for (var t in tracks) {
+      await t.stop();
+      await t.dispose();
+    }
+    for (var t in transceivers) {
+      await t.dispose();
+    }
+    await cloneVideoTrack.stop();
+    await cloneVideoTrack.dispose();
+  });
   //
   // testWidgets('Media stream constraints', (WidgetTester tester) async {
   //   var capsVideoDeviceOnly = DeviceConstraints();
