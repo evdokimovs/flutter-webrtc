@@ -14,27 +14,6 @@ class MediaDevices {
   /// Subscribes on `AVAudioSession.routeChangeNotification` notifications for
   /// `onDeviceChange` callback firing.
   init(state: State) {
-        // try audioSession.setCategory(.playAndRecord, options: .defaultToSpeaker)
-        // do {
-        //     try audioSession.setMode(.voiceChat)
-        // } catch {
-        //     print("Cannot set mode due to error: \(error.localizedDescription)")
-        // }
-        //
-        // try audioSession.setPreferredOutputNumberOfChannels(0)
-        //
-        // do {
-        //     try audioSession.overrideOutputAudioPort(.speaker)
-        // } catch {
-        //     print("Port override failed due to: \(error.localizedDescription)")
-        // }
-        //
-        // do {
-        //     try audioSession.setActive(true)
-        //     print("AudioSession override is successful")
-        // } catch {
-        //     print("Audio session override failed: \(error.localizedDescription)")
-        // }
     try! AVAudioSession.sharedInstance().setCategory(
       AVAudioSession.Category.playAndRecord,
       options: AVAudioSession.CategoryOptions.defaultToSpeaker
@@ -42,7 +21,6 @@ class MediaDevices {
     try! AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(0)
     try! AVAudioSession.sharedInstance().setActive(true)
     self.state = state
-    // try! AVAudioSession.sharedInstance().overrideOutputAudioPort(.none)
     NotificationCenter.default.addObserver(
       forName: AVAudioSession.routeChangeNotification, object: nil,
       queue: OperationQueue.main,
@@ -56,7 +34,6 @@ class MediaDevices {
 
   /// Switches current input device to the iPhone's microphone.
   func setBuiltInMicAsInput() {
-    return;
     if let routes = AVAudioSession.sharedInstance().availableInputs {
       for route in routes {
         if route.portType == .builtInMic {
@@ -70,7 +47,6 @@ class MediaDevices {
 
   /// Switches current audio output device to a device with the provided ID.
   func setOutputAudioId(id: String) {
-    return;
     let session = AVAudioSession.sharedInstance()
     try! AVAudioSession.sharedInstance().setCategory(
       AVAudioSession.Category.playAndRecord,
